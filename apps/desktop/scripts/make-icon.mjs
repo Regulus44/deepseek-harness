@@ -45,3 +45,15 @@ const ico = await pngToIco(buffers);
 const icoPath = path.join(OUT, 'icon.ico');
 writeFileSync(icoPath, ico);
 console.log(`wrote ${path.relative(ROOT, icoPath)} (${ico.length} bytes)`);
+
+// Tray icons: render straight from the vector at the exact tray sizes, so the
+// small icon stays crisp (resizing the 256px bitmap blurs it).
+for (const size of [16, 32]) {
+  const traySvg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 50 50">` +
+    `<path d="${d}" fill="${FILL}"/></svg>`;
+  const buf = await sharp(Buffer.from(traySvg)).png().toBuffer();
+  const file = path.join(OUT, `tray-${size}.png`);
+  writeFileSync(file, buf);
+  console.log(`wrote ${path.relative(ROOT, file)} (${buf.length} bytes)`);
+}

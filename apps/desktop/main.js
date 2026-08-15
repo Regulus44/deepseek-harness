@@ -226,10 +226,26 @@ function showMainWindow() {
 
 function createTray() {
   try {
-    const image = nativeImage.createFromPath(ICON_PATH);
-    tray = new Tray(
-      image.isEmpty() ? ICON_PATH : image.resize({ width: 16, height: 16 }),
-    );
+    const p16 = path.join(__dirname, 'build', 'tray-16.png');
+    const p32 = path.join(__dirname, 'build', 'tray-32.png');
+    let trayImage = nativeImage.createFromPath(ICON_PATH);
+    if (fs.existsSync(p16) && fs.existsSync(p32)) {
+      // Crisp multi-resolution tray icon rendered straight from the vector
+      // (a naive resize of the 256px bitmap looks blurry in the tray).
+      trayImage = nativeImage.createEmpty();
+      trayImage.addRepresentation({
+        scaleFactor: 1.0,
+        buffer: fs.readFileSync(p16),
+      });
+      trayImage.addRepresentation({
+        scaleFactor: 2.0,
+        buffer: fs.readFileSync(p32),
+      });
+    }
+    if (trayImage.isEmpty()) {
+      trayImage = nativeImage.createFromPath(ICON_PATH);
+    }
+    tray = new Tray(trayImage);
     tray.setToolTip('DeepSeek Harness');
     tray.setContextMenu(
       Menu.buildFromTemplate([
